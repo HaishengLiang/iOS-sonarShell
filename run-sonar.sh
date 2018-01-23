@@ -153,9 +153,9 @@ fi
 workspaceFile=''; readParameter workspaceFile 'sonar.objectivec.workspace'
 projectFile=''; readParameter projectFile 'sonar.objectivec.project'
 if [[ "$workspaceFile" != "" ]] ; then
-	xctoolCmdPrefix="xctool -workspace $workspaceFile -sdk iphonesimulator ARCHS=i386 VALID_ARCHS=i386 CURRENT_ARCH=i386 ONLY_ACTIVE_ARCH=NO"
+	xctoolCmdPrefix="xcodebuild -workspace $workspaceFile -sdk iphonesimulator -configuration Debug CLANG_ENABLE_MODULE_DEBUGGING=NO CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO ENABLE_BITCODE=NO COMPILER_INDEX_STORE_ENABLE=NO"
 else
-	xctoolCmdPrefix="xctool -project $projectFile -sdk iphonesimulator ARCHS=i386 VALID_ARCHS=i386 CURRENT_ARCH=i386 ONLY_ACTIVE_ARCH=NO"
+	xctoolCmdPrefix="xcodebuild -project $projectFile -sdk iphonesimulator -configuration Debug CLANG_ENABLE_MODULE_DEBUGGING=NO CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO ENABLE_BITCODE=NO COMPILER_INDEX_STORE_ENABLE=NO"
 fi	
 
 # Source directories for .h/.m files
@@ -217,9 +217,13 @@ if [[ ! (-d "sonar-reports") && ("$nflag" != "on") ]]; then
 fi
 
 # Extracting project information needed later
-echo -n 'Extracting Xcode project information'
-runCommand /dev/stdout $xctoolCmdPrefix -scheme "$appScheme" clean
-runCommand /dev/stdout $xctoolCmdPrefix -scheme "$appScheme" -reporter json-compilation-database:compile_commands.json build
+echo -n 'Extracting Xcode project information Clean'
+echo -n
+$xctoolCmdPrefix -scheme "$appScheme" clean
+echo -n 'Extracting Xcode project information Start'
+echo -n
+$xctoolCmdPrefix -scheme "$appScheme" build | tee xcodebuild.log | xcpretty -r json-compilation-database --output compile_commands.json
+
 
 # Unit tests and coverage
 if [ "$testScheme" = "" ]; then
@@ -231,9 +235,7 @@ if [ "$testScheme" = "" ]; then
 else
 
 	echo -n 'Running tests using xctool'	
-	# runCommand sonar-reports/TEST-report.xml $xctoolCmdPrefix -scheme "$testScheme" -reporter junit GCC_GENERATE_TEST_COVERAGE_FILES=YES GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES test
-	# ctf:这个命令出错, 用下面的命令代替
-	$xctoolCmdPrefix -scheme "$testScheme" -reporter junit:TEST-report.xml GCC_GENERATE_TEST_COVERAGE_FILES=YES GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES test
+	runCommand sonar-reports/TEST-report.xml $xctoolCmdPrefix -scheme "$testScheme" -reporter junit GCC_GENERATE_TEST_COVERAGE_FILES=YES GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES test
 
 	echo -n 'Computing coverage report'
 
@@ -290,14 +292,14 @@ if [ "$oclint" = "on" ]; then
 	
 	# Run OCLint with the right set of compiler options
     maxPriority=10000
-	runCommand no oclint-json-compilation-database $includedCommandLineFlags -- -max-priority-1 $maxPriority -max-priority-2 $maxPriority -max-priority-3 $maxPriority -report-type pmd -o sonar-reports/oclint.xml
+	runCommand no oclint-json-compilation-database $includedCommandLineFlags -e Pods -- -extra-arg=-Wno-everything -rc LONG_LINE=250 -max-priority-1 $maxPriority -max-priority-2 $maxPriority -max-priority-3 $maxPriority -report-type pmd -o sonar-reports/oclint.xml
 else
 	echo 'Skipping OCLint (test purposes only!)'
 fi
 
 # SonarQube
 echo -n 'Running SonarQube using SonarQube Runner'
-runCommand /dev/stdout sonar-runner
+runCommand /dev/stdout /Users/yangguangegou/Downloads/sonar-runner-2.4/bin/sonar-runner 
 	
 # Kill progress indicator
 stopProgress
