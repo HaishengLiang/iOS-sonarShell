@@ -78,7 +78,7 @@ xcpretty -r json-compilation-database --output compile_commands.json
 
 oclint-json-compilation-database -e Pods 
 
-3、oclint：complert rule 错误
+3、ERROR: The rule 'OCLint:compiler warning' does not exist.
 
 插件错误 使用 参数 -extra-arg=-Wno-everything -rc LONG_LINE=250
 
