@@ -24,8 +24,13 @@
 
 直接下载后解压即可运行，Mysql配置（可选，建议配置）
 
-自带Tomcat，直接执行对应环境下bin目录中的执行文件即可启动，Web控制台地址：http://localhost:9000 默认账户 admin 密码 admin
+Sonar自带了Jetty6 的应用服务器环境，直接执行对应环境下bin目录中的执行文件即可启动，Web控制台地址：http://localhost:9000 默认账户 admin 密码 admin
 
+中文语言包下载：
+
+https://github.com/SonarQubeCommunity/sonar-l10n-zh
+
+根据对照表选择1.19版本
 
 
 ## iOS集成方案（Xcode 8.x+）
