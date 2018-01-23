@@ -299,7 +299,7 @@ fi
 
 # SonarQube
 echo -n 'Running SonarQube using SonarQube Runner'
-runCommand /dev/stdout /Users/yangguangegou/Downloads/sonar-runner-2.4/bin/sonar-runner 
+runCommand /dev/stdout sonar-runner-2.4/bin/sonar-runner 
 	
 # Kill progress indicator
 stopProgress
